@@ -3,15 +3,23 @@
   "version": "0.1.0",
   "description": "Project-local daily journal for developers",
   "bin": {
-    "daily-log": "./bin/dailydev.js"
+    "dailydev": "bin/dailydev.js"
   },
   "preferGlobal": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/fochkun/daily-log"
+    "url": "git+https://github.com/fochkun/daily-log.git"
   },
-  "files": ["bin"],
-  "keywords": ["journal", "markdown", "developer", "productivity", "cli"],
+  "files": [
+    "bin"
+  ],
+  "keywords": [
+    "journal",
+    "markdown",
+    "developer",
+    "productivity",
+    "cli"
+  ],
   "author": "Dmitriy Chervakov",
   "license": "MIT"
 }
