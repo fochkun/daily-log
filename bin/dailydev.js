@@ -50,6 +50,56 @@ function getTodayFilePath() {
   return path.join(dirPath, `${dateStr}.md`);
 }
 
+function updateIndex(dateStr, relativePath) {
+  const indexPath = INDEX_PATH;
+  let indexContent = '';
+
+  console.log('Запускаем апдэйт');
+  if (fs.existsSync(indexPath)) {
+    indexContent = fs.readFileSync(indexPath, 'utf8');
+  } else {
+    // Инициализация index.md (на случай, если его нет)
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    const header = config.lang === 'en'
+      ? '# Dev Journal\n\nList of entries:\n'
+      : '# Журнал разработчика\n\nСписок записей:\n';
+    indexContent = header;
+    fs.writeFileSync(indexPath, indexContent);
+  }
+
+  // Формат ссылки: - [2026-01-15](2026/01/2026-01-15.md)
+  const linkLine = `- [${dateStr}](${relativePath})`;
+
+  // Проверяем, есть ли уже такая строка
+  if (!indexContent.includes(linkLine)) {
+    // Находим последнюю строку с "- [" или конец заголовка
+    const lines = indexContent.split('\n');
+    let insertIndex = lines.length;
+
+    // Ищем последнюю строку, начинающуюся с "- ["
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (lines[i].startsWith('- [')) {
+        insertIndex = i + 1;
+        break;
+      }
+    }
+
+    // Если не нашли — вставляем после заголовка
+    if (insertIndex === lines.length) {
+      // Пропускаем первую строку (# Заголовок) и пустые строки
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].trim() === '' && i > 0) {
+          insertIndex = i + 1;
+          break;
+        }
+      }
+    }
+
+    lines.splice(insertIndex, 0, linkLine);
+    fs.writeFileSync(indexPath, lines.join('\n'));
+  }
+}
+
 // === Commands ===
 
 function init() {
@@ -101,7 +151,9 @@ function init() {
   });
 }
 
-function start() {
+function create() {
+  const today = new Date();
+  const dateStr = formatDate(today);
   const filePath = getTodayFilePath();
 
   if (fs.existsSync(filePath)) {
@@ -116,6 +168,11 @@ function start() {
     content = content.replace(/{{date}}/g, formatDate());
     fs.writeFileSync(filePath, content);
     console.log(`✅ Создан разгон: ${filePath}`);
+
+    // обновление index.md ---
+    const [year, month] = dateStr.split('-');
+    const relativePath = `${year}/${month}/${dateStr}.md`;
+    updateIndex(dateStr, relativePath);
   }
 
   openFile(filePath);
@@ -125,7 +182,7 @@ function task() {
   const filePath = getTodayFilePath();
 
   if (!fs.existsSync(filePath)) {
-    console.error('⚠️ Сначала запустите `dailydev start`');
+    console.error('⚠️ Сначала запустите `dailydev create`');
     process.exit(1);
   }
 
@@ -153,13 +210,13 @@ switch (cmd) {
   case 'init':
     init();
     break;
-  case 'start':
-    start();
+  case 'create':
+    create();
     break;
   case 'task':
     task();
     break;
   default:
-    console.log('Использование: dailydev <init|start|task [название задачи]>');
+    console.log('Использование: dailydev <init|create|task [название задачи]>');
     process.exit(1);
 }
