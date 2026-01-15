@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Project-local daily journal for developers",
   "bin": {
-    "daily-log": "./bin/daily-log.js"
+    "daily-log": "./bin/dailydev.js"
   },
   "preferGlobal": true,
   "repository": {
